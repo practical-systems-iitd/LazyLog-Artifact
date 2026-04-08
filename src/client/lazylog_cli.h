@@ -13,7 +13,7 @@
 #include "../utils/sequencer.h"
 
 #ifdef CORFU
-#include "../rpc/erpc_transport.h"
+#include "../rpc/transport.h"
 #endif
 
 namespace lazylog {

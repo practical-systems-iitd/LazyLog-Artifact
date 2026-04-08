@@ -3,11 +3,11 @@
 #include <vector>
 
 #include "../rpc/common.h"
-#include "../rpc/erpc_transport.h"
+#include "../rpc/transport.h"
 
 namespace lazylog {
 
-class ConsensusLogCli : public ERPCTransport {
+class ConsensusLogCli : public RPCTransport {
    public:
     virtual uint64_t DispatchEntry(const LogEntry &e) = delete;
     virtual std::vector<uint64_t> DispatchEntries(const std::vector<LogEntry> &es) = delete;  // currently not used

@@ -1,15 +1,17 @@
 #pragma once
 
 #include "cons_log_cli.h"
+#include <grpcpp/grpcpp.h>
+#include "lazylog.pb.h"
+#include "lazylog.grpc.pb.h"
 #include "glog/logging.h"
 
 namespace lazylog {
 
-class ConsensusLogERPCCli : public ConsensusLogCli {
-    friend void rpc_cont_func_cons(void *ctx, void *tag);
+class ConsensusLogGrpcCli : public ConsensusLogCli {
    public:
-    ConsensusLogERPCCli();
-    ConsensusLogERPCCli(erpc::Nexus *nexus) { nexus_ = nexus; }  // this is used for initialize cons log cli within 
+    ConsensusLogGrpcCli();
+    virtual ~ConsensusLogGrpcCli();
 
     void Initialize(const Properties &p) override {
         LOG(ERROR) << "This is a client RPC transport";
@@ -23,17 +25,7 @@ class ConsensusLogERPCCli : public ConsensusLogCli {
     uint64_t GetNumOrderedEntries() override;
 
    protected:
-    void pollForRpcComplete();
-    void notifyRpcComplete();
-
-   protected:
-    int session_num_;
-    static std::unordered_map<std::string, std::atomic<uint8_t> > local_rpc_cnt_;
-    bool del_nexus_on_finalize_;
-
-    erpc::MsgBuffer req_;
-    erpc::MsgBuffer resp_;
-    bool complete_;
+    std::unique_ptr<proto::ConsLogService::Stub> stub_;
 };
 
 }  // namespace lazylog

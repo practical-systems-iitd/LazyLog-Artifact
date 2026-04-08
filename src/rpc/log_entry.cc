@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <cstdint>
 
 #define SERIALIZE_FIELD(BUF, OFFSET, FIELD)                         \
     do {                                                            \

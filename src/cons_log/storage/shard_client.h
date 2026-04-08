@@ -1,13 +1,16 @@
 #pragma once
 
-#include "../../rpc/erpc_transport.h"
+#include "../../rpc/transport.h"
 #include "../../rpc/log_entry.h"
 #include "../../rpc/rpc_token.h"
 #include "glog/logging.h"
 
+#include <grpcpp/grpcpp.h>
+#include "lazylog.grpc.pb.h"
+
 namespace lazylog {
 
-class ShardClient : public ERPCTransport {
+class ShardClient : public RPCTransport {
    public:
     ShardClient();
     ~ShardClient();
@@ -33,8 +36,8 @@ class ShardClient : public ERPCTransport {
 #endif
 
    protected:
-    erpc::MsgBuffer req_;
-    erpc::MsgBuffer resp_;
+    std::shared_ptr<grpc::Channel> channel_;
+    std::unique_ptr<lazylog::proto::ShardService::Stub> stub_;
 
     bool del_nexus_on_finalize_;
     int session_num_;

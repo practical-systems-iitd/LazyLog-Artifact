@@ -4,10 +4,15 @@
 
 #include <chrono>
 
-#include "../cons_log/cons_log_erpc_cli.h"
-#include "../dur_log/dur_log_erpc_cli.h"
+#include "../cons_log/cons_log_grpc_cli.h"
+#include "../dur_log/dur_log_grpc_cli.h"
 #include "../rpc/rpc_factory.h"
+#include <shared_mutex>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <vector>
 #include <mutex>
+#include <random>
 
 namespace lazylog {
 
@@ -31,7 +36,7 @@ void LazyLogClient::Initialize(const Properties &p) {
 
     for (auto &s : dl_servers) {
         // dur_clis_[s] = std::dynamic_pointer_cast<DurabilityLogCli>(RPCFactory::CreateCliRPCTransport(p));
-        dur_clis_[s] = std::make_shared<DurabilityLogERPCCli>();  // TODO: use dynamic type
+        dur_clis_[s] = std::make_shared<DurabilityLogGrpcCli>();  // TODO: use dynamic type
         dur_clis_[s]->InitializeConn(p, s, nullptr);
     }
 
@@ -150,7 +155,7 @@ std::pair<uint64_t, uint64_t> LazyLogClient::AppendEntryAll(const std::string &d
 
     do {
         for (auto &dc : dur_clis_) {
-            dc.second->RunERPCOnce();
+            dc.second->CheckPendingReq();
         }
     } while (!allCompleted(tokens));
 
@@ -186,7 +191,7 @@ int LazyLogClient::SpecReadEntry(const uint64_t idx, std::string &data) {
     return ret_v;
 }
 
-void LazyLogClient::doProgress() { ERPCTransport::RunERPCOnce(); }
+void LazyLogClient::doProgress() { /* gRPC operations complete synchronously or in detached threads, no event loop running needed */ }
 
 std::tuple<uint64_t, uint64_t, uint16_t> LazyLogClient::GetTail() { return dur_clis_[dl_primary_]->GetNumDurEntry(); }
 

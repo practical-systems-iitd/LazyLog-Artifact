@@ -21,21 +21,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-if(NOT ERPC_DIR)
-    set(ERPC_DIR ${CMAKE_SOURCE_DIR}/../eRPC)
-endif()
-message("ERPC dir is ${ERPC_DIR}")
-
 find_package(Threads REQUIRED)
 
+find_package(Protobuf REQUIRED)
+find_package(gRPC REQUIRED)
+
 include_directories(
-    ${ERPC_DIR}/src
-    ${ERPC_DIR}/third_party/asio/include
     ${CMAKE_CURRENT_SOURCE_DIR}/cppkafka/include)
 
 add_subdirectory(abseil-cpp)
 add_subdirectory(HdrHistogram_c)
-add_subdirectory(RDMA)
 add_subdirectory(cppkafka)
 add_subdirectory(src)
 add_subdirectory(tst)

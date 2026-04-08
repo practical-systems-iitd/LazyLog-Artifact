@@ -4,10 +4,14 @@
 #include <map>
 #include <shared_mutex>
 #include <thread>
+#include <unordered_map>
 
-#include "../../rpc/erpc_transport.h"
+#include "../../rpc/transport.h"
 #include "glog/logging.h"
 #include "shard_client.h"
+
+#include <grpcpp/grpcpp.h>
+#include "lazylog.grpc.pb.h"
 
 namespace lazylog {
 
@@ -19,7 +23,15 @@ class ShardServerMetrics {
     friend std::ostream &operator<<(std::ostream &out, const ShardServerMetrics &B);
 };
 
-class ShardServerUnoptimized : public ERPCTransport {
+class ShardServerUnoptImpl final : public lazylog::proto::ShardService::Service {
+public:
+    grpc::Status AppendBatch(grpc::ServerContext* context, const lazylog::proto::AppendBatchRequest* request, lazylog::proto::ShardResponse* response) override;
+    grpc::Status ReplicateBatch(grpc::ServerContext* context, const lazylog::proto::ReplicateBatchRequest* request, lazylog::proto::ShardResponse* response) override;
+    grpc::Status UpdateGlobalIdx(grpc::ServerContext* context, const lazylog::proto::UpdateGlobalIdxRequest* request, lazylog::proto::ShardResponse* response) override { return grpc::Status::OK; }
+    grpc::Status ReadEntry(grpc::ServerContext* context, const lazylog::proto::ReadEntryRequest* request, lazylog::proto::ReadEntryResponse* response) override;
+};
+
+class ShardServerUnoptimized : public RPCTransport {
    public:
     ShardServerUnoptimized();
     ~ShardServerUnoptimized();
@@ -31,12 +43,7 @@ class ShardServerUnoptimized : public ERPCTransport {
     void Initialize(const Properties &p) override;
     void Finalize() override;
 
-   protected:
-    static void AppendBatchHandler(erpc::ReqHandle *req_handle, void *context);       // called from middle man
-    static void ReplicateBatchHandler(erpc::ReqHandle *req_handle, void *context);    // called from shard primary
-    static void ReadEntryHandler(erpc::ReqHandle *req_handle, void *context);         // called from middle man
-    static void ReadEntryHandlerWOCache(erpc::ReqHandle *req_handle, void *context);  // called from middle man
-
+   public:
     static void processEntriesAndBuildMap(uint64_t base_idx, const uint8_t *buf);
     static std::string getDataFilePath(uint64_t base_idx);
     static int writeFromCacheToDisk(uint64_t base_idx);
@@ -44,11 +51,9 @@ class ShardServerUnoptimized : public ERPCTransport {
     static int loadFromDiskToCache(uint64_t base_idx);
     static bool allRPCCompleted(std::vector<RPCToken> &tokens);
 
-    // static int mmapWriteToDisk(std::string &path, const std::vector<LogEntry> &es, size_t size);
     static void server_func(const Properties &p);
     static void read_server_func(const Properties &p, int t_id);
 
-   protected:
     static std::unordered_map<std::string, std::shared_ptr<ShardClient>> backups_;
     static std::unordered_map<uint64_t, std::map<uint64_t, uint64_t>> gsn_to_file_offset_map_;
     static std::unordered_map<uint64_t, int> entries_fd_set_;
@@ -63,6 +68,9 @@ class ShardServerUnoptimized : public ERPCTransport {
     static ShardServerMetrics metrics_;
     static uint64_t replicated_index_;
 
+    static std::unique_ptr<grpc::Server> grpc_server_;
+
+   protected:
     std::vector<std::thread> server_threads_;
     bool is_primary_;
 };

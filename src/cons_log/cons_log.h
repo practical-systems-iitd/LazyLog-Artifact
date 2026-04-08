@@ -14,6 +14,8 @@ namespace lazylog {
 
 class ConsensusLog {
     friend class ERPCConsLogTransport;
+    friend class GrpcConsLogTransport;
+    friend class ConsLogServiceImpl;
    public:
     ConsensusLog();
     ~ConsensusLog();

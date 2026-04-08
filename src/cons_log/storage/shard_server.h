@@ -6,10 +6,14 @@
 #include <map>
 #include <shared_mutex>
 #include <thread>
+#include <unordered_map>
 
-#include "../../rpc/erpc_transport.h"
+#include "../../rpc/transport.h"
 #include "glog/logging.h"
 #include "shard_client.h"
+
+#include <grpcpp/grpcpp.h>
+#include "lazylog.grpc.pb.h"
 
 namespace lazylog {
 
@@ -21,7 +25,15 @@ class ShardServerMetrics {
     friend std::ostream &operator<<(std::ostream &out, const ShardServerMetrics &B);
 };
 
-class ShardServer : public ERPCTransport {
+class ShardServerImpl final : public lazylog::proto::ShardService::Service {
+public:
+    grpc::Status AppendBatch(grpc::ServerContext* context, const lazylog::proto::AppendBatchRequest* request, lazylog::proto::ShardResponse* response) override;
+    grpc::Status ReplicateBatch(grpc::ServerContext* context, const lazylog::proto::ReplicateBatchRequest* request, lazylog::proto::ShardResponse* response) override;
+    grpc::Status UpdateGlobalIdx(grpc::ServerContext* context, const lazylog::proto::UpdateGlobalIdxRequest* request, lazylog::proto::ShardResponse* response) override;
+    grpc::Status ReadEntry(grpc::ServerContext* context, const lazylog::proto::ReadEntryRequest* request, lazylog::proto::ReadEntryResponse* response) override;
+};
+
+class ShardServer : public RPCTransport {
    public:
     ShardServer();
     ~ShardServer();
@@ -33,12 +45,7 @@ class ShardServer : public ERPCTransport {
     void Initialize(const Properties &p) override;
     void Finalize() override;
 
-   protected:
-    static void AppendBatchHandler(erpc::ReqHandle *req_handle, void *context);      // called from middle man
-    static void ReplicateBatchHandler(erpc::ReqHandle *req_handle, void *context);   // called from shard primary
-    static void ReadEntryHandler(erpc::ReqHandle *req_handle, void *context);        // called from middle man
-    static void UpdateGlobalIdxHandler(erpc::ReqHandle *req_handle, void *context);  // called from middle man
-
+   public:
     static void addToEntryCache(uint64_t base_idx, const uint8_t *buf);
     static std::string getDataFilePath(uint64_t base_idx);
     static int writeFromCacheToDisk(uint64_t base_idx);
@@ -47,18 +54,10 @@ class ShardServer : public ERPCTransport {
     static bool processExistingDataFiles();
     static void backgroundFsync();
 
-#ifdef CORFU
-    static void ReadBatchHandler(erpc::ReqHandle *req_handle, void *context);  // called from client
-    static size_t collectBatchEntries(const uint64_t start_idx, const uint64_t end_idx, uint8_t *buf);
-    static void AppendEntryHandler(erpc::ReqHandle *req_handle, void *context);  // called from client
-    static void addToEntryCacheAsync(uint64_t base_idx, const uint8_t *buf);
-#endif
-
     // static int mmapWriteToDisk(std::string &path, const std::vector<LogEntry> &es, size_t size);
     static void server_func(const Properties &p);
     static void read_server_func(const Properties &p, int t_id);
 
-   protected:
     static std::unordered_map<std::string, std::shared_ptr<ShardClient>> backups_;
     static std::unordered_map<uint64_t, std::vector<LogEntry>> entries_cache_set_;
     static std::map<uint64_t, int> entries_fd_set_;
@@ -73,14 +72,11 @@ class ShardServer : public ERPCTransport {
     static uint64_t replicated_index_;
     static uint64_t global_index_;
     static bool terminate_;
+    static std::unique_ptr<grpc::Server> grpc_server_;
 
+   protected:
     std::vector<std::thread> server_threads_;
     std::thread fsync_thread_;
     bool is_primary_;
-#ifdef CORFU
-    static int entry_fd_;
-    static uint64_t entry_size_;
-    static std::unordered_map<uint64_t, std::atomic<int>> cache_size_atomic_;
-#endif
 };
 }  // namespace lazylog

@@ -1,6 +1,6 @@
 #include "dur_log.h"
 
-#include "../cons_log/cons_log_erpc_cli.h"
+#include "../cons_log/cons_log_grpc_cli.h"
 #include "../rpc/rpc_factory.h"
 #include "glog/logging.h"
 

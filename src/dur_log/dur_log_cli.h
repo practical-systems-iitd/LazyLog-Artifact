@@ -1,12 +1,13 @@
 #pragma once
 
 #include "../rpc/common.h"
-#include "../rpc/erpc_transport.h"
+#include "../rpc/transport.h"
 #include "../rpc/rpc_token.h"
-
+#include <memory>
+#include <vector>
 namespace lazylog {
 
-class DurabilityLogCli : public ERPCTransport {
+class DurabilityLogCli : public RPCTransport {
    public:
     virtual uint64_t AppendEntry(const LogEntry &e) = 0;
     virtual bool AppendEntryAsync(const LogEntry &e, std::shared_ptr<RPCToken> &token) = 0;

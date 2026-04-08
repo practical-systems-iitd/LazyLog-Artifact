@@ -3,10 +3,10 @@
 #include <fstream>
 #include <vector>
 
-#include "../dur_log/dur_log_flat_cli.h"
+#include "../dur_log/dur_log_grpc_cli.h"
 #include "../rpc/rpc_factory.h"
 #include "../utils/timer.h"
-#include "cons_log_erpc_cli.h"
+#include "cons_log_grpc_cli.h"
 #include "storage/kafka_backend.h"
 #include "storage/naive_backend.h"
 
@@ -45,7 +45,7 @@ void ConsensusLog::Initialize(const Properties& p, void* param) {
     for (auto& d : dur_svr_uri) {
         // dur_cli_[d] = std::dynamic_pointer_cast<DurabilityLogCli>(
         //     RPCFactory::CreateCliRPCTransport(p));
-        dur_cli_[d] = std::make_shared<DurabilityLogFlatCli>();
+        dur_cli_[d] = std::make_shared<DurabilityLogGrpcCli>();
         dur_cli_[d]->InitializeConn(p, d, reinterpret_cast<void*>(1));
     }
 

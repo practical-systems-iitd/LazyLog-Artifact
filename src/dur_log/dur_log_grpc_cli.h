@@ -1,22 +1,20 @@
 #pragma once
 
-#include <rpc.h>
-
-#include <atomic>
-#include <queue>
-
 #include "dur_log_cli.h"
+#include <grpcpp/grpcpp.h>
+#include "lazylog.pb.h"
+#include "lazylog.grpc.pb.h"
 #include "glog/logging.h"
+#include <queue>
+#include <thread>
+#include <future>
 
 namespace lazylog {
 
-class DurabilityLogERPCCli : public DurabilityLogCli {
-    friend void rpc_cont_func(void *ctx, void *tag);
-    friend void rpc_cont_func_async(void *ctx, void *tag);
-
+class DurabilityLogGrpcCli : public DurabilityLogCli {
    public:
-    DurabilityLogERPCCli();
-    virtual ~DurabilityLogERPCCli();
+    DurabilityLogGrpcCli();
+    virtual ~DurabilityLogGrpcCli();
 
     void Initialize(const Properties &p) override {
         LOG(ERROR) << "This is a client RPC transport";
@@ -38,8 +36,8 @@ class DurabilityLogERPCCli : public DurabilityLogCli {
     bool CheckAndRunOnce() override;
 
 #ifdef CORFU
-    virtual uint64_t getGSN();
-    virtual uint64_t getGSNBatch(uint64_t batchSize);
+    virtual uint64_t getGSN() { return 0; }
+    virtual uint64_t getGSNBatch(uint64_t batchSize) { return 0; }
 #endif
 
    public:
@@ -47,21 +45,9 @@ class DurabilityLogERPCCli : public DurabilityLogCli {
     void CheckPendingReq() override;
 
    protected:
-    void pollForRpcComplete();
-    void notifyRpcComplete();
-
-   protected:
-    int session_num_;
-    static std::unordered_map<std::string, std::atomic<uint8_t> > local_rpc_cnt_;
-    bool del_nexus_on_finalize_;
+    std::unique_ptr<proto::DurLogService::Stub> stub_;
     bool is_primary_;
-
-    erpc::MsgBuffer req_;
-    erpc::MsgBuffer resp_;
-
-    bool complete_;
-    std::queue<std::shared_ptr<RPCToken> > pending_reqs_;
-    RPCToken rpc_tkn_;
+    std::queue<std::shared_ptr<RPCToken>> pending_reqs_;
 };
 
 }  // namespace lazylog

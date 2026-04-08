@@ -1,6 +1,7 @@
 #include "naive_backend.h"
 
 #include "../../rpc/common.h"
+#include <thread>
 
 namespace lazylog {
 
@@ -57,7 +58,7 @@ uint64_t NaiveBackend::AppendBatch(const std::vector<LogEntry>& es) {
             uint64_t stripe_to = shard_clients_[shard_id]->AppendBatchAsync(es, stripe_from - start_idx, to - start_idx,
                                                                             shard_num_, tokens.back()) +
                                  start_idx;
-            shard_clients_[shard_id]->RunERPCOnce();
+            // gRPC is handled asynchronously in the background
             DLOG(INFO) << "Sending entries [" << stripe_from << ", " << stripe_to << "] to shard " << shard_id;
         }
         waitForAllShards(tokens);
@@ -93,7 +94,7 @@ bool NaiveBackend::allRPCCompleted(std::vector<RPCToken>& tokens) {
 
 void NaiveBackend::waitForAllShards(std::vector<RPCToken>& tokens) {
     while (!allRPCCompleted(tokens)) {
-        ShardClient::RunERPCOnce();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
@@ -153,7 +154,7 @@ bool NaiveReadBackend::allRPCCompleted(std::vector<RPCToken>& tokens) {
 
 void NaiveReadBackend::waitForAllShards(std::vector<RPCToken>& tokens) {
     while (!allRPCCompleted(tokens)) {
-        ShardClient::RunERPCOnce();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 

@@ -1,7 +1,6 @@
 set(RPC_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/log_entry.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/transport.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/erpc_transport.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/rpc_factory.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/rpc_token.cc)
 

@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package lazylog.proto;
+
+message RawEntry {
+    bytes data = 1;
+}
+
+message ReadEntryRequest {
+    uint64 idx = 1;
+}
+
+message ReadEntryResponse {
+    RawEntry entry = 1;
+}
+
+message ReadEntriesRequest {
+    uint64 from_idx = 1;
+    uint64 to_idx = 2;
+}
+
+message ReadEntriesResponse {
+    repeated RawEntry entries = 1;
+}
+
+message Empty {}
+
+message GetNumOrderedEntriesResponse {
+    uint64 num = 1;
+}
+
+service ConsLogService {
+    rpc ReadEntry(ReadEntryRequest) returns (ReadEntryResponse) {}
+    rpc ReadEntries(ReadEntriesRequest) returns (ReadEntriesResponse) {}
+    rpc GetNumOrderedEntries(Empty) returns (GetNumOrderedEntriesResponse) {}
+}
+
+message AppendEntryRequest {
+    RawEntry entry = 1;
+}
+
+message AppendEntryResponse {
+    uint64 seq = 1;
+}
+
+message GetNumDurEntryResponse {
+    uint64 seq1 = 1;
+    uint64 seq2 = 2;
+    uint32 num = 3;
+}
+
+message FetchUnorderedRequest {
+    uint64 from_idx = 1;
+    uint32 max_fetch_size = 2;
+}
+
+message FetchUnorderedResponse {
+    repeated RawEntry entries = 1;
+    uint64 last_client_seq = 2;
+}
+
+message SpecReadRequest {
+    uint64 idx = 1;
+}
+
+message SpecReadResponse {
+    int32 status = 1;
+    RawEntry entry = 2;
+}
+
+message ReqID {
+    uint64 client_id = 1;
+    uint64 client_seq = 2;
+}
+
+message DeleteOrderedRequest {
+    repeated ReqID seqs = 1;
+}
+
+message DeleteOrderedResponse {
+    uint64 max_seq = 1;
+}
+
+service DurLogService {
+    rpc AppendEntry(AppendEntryRequest) returns (AppendEntryResponse) {}
+    rpc GetNumDurEntry(Empty) returns (GetNumDurEntryResponse) {}
+    rpc FetchUnorderedEntries(FetchUnorderedRequest) returns (FetchUnorderedResponse) {}
+    rpc SpecRead(SpecReadRequest) returns (SpecReadResponse) {}
+    rpc DeleteOrderedEntries(DeleteOrderedRequest) returns (DeleteOrderedResponse) {}
+}
+
+message AppendBatchRequest {
+    repeated RawEntry entries = 1;
+}
+
+message ReplicateBatchRequest {
+    bytes data = 1;
+}
+
+message ShardResponse {
+    int32 status = 1;
+}
+
+message UpdateGlobalIdxRequest {
+    uint64 idx = 1;
+}
+
+service ShardService {
+    rpc AppendBatch(AppendBatchRequest) returns (ShardResponse) {}
+    rpc ReplicateBatch(ReplicateBatchRequest) returns (ShardResponse) {}
+    rpc UpdateGlobalIdx(UpdateGlobalIdxRequest) returns (ShardResponse) {}
+    rpc ReadEntry(ReadEntryRequest) returns (ReadEntryResponse) {}
+}
