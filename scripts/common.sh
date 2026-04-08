@@ -1,18 +1,3 @@
-# cons_svr="node4"
-# dur_svrs=("node1" "node2" "node3")
-
-# if [ "$scalable_tput" = "true" ]; then 
-#     shard_pri=("node5" "node7" "node9" "node11" "node13" "node15" "node17" "node19" "node21" "node23")
-#     shard_bac=("node6" "node8" "node10" "node12" "node14" "node16" "node18" "node20" "node22" "node24")
-# elif [ "$threeway" = "true" ]; then 
-#     shard_pri=("node5" "node7" "node9" "node11" "node13")
-#     shard_bac=("node6" "node8" "node10" "node12" "node14")
-#     shard_bac1=("node14" "node12" "node8" "node10" "node6")
-# else 
-#     shard_pri=("node5" "node7" "node9" "node11" "node13")
-#     shard_bac=("node6" "node8" "node10" "node12" "node14")
-# fi
-# client_nodes=("node0")
 # Role 1: Client Node
 client_nodes=("n1")
 
@@ -30,6 +15,8 @@ if [ "$scalable_tput" = "true" ]; then
 else 
     shard_pri=("n6" "n8" "n10" "n12" "n14")
     shard_bac=("n7" "n9" "n11" "n13" "n15")
+    # shard_pri=("n6")
+    # shard_bac=("n7")
 fi
 source $(dirname $0)/usr_cfg.sh
 
@@ -186,12 +173,12 @@ kill_shard_svrs() {
     for svr in "${shard_pri[@]}"; 
     do
         ssh -o StrictHostKeyChecking=no -i $pe $username@$svr "sudo bash -s shardsvr" < $script_dir/kill_process.sh &
-        ssh -o StrictHostKeyChecking=no -i $pe $username@$svr "sudo kill -9 \$(sudo lsof -t -i:31860)" > /dev/null 2>&1
+        ssh -o StrictHostKeyChecking=no -i $pe $username@$svr "pids=\$(sudo lsof -t -i:31860); [ ! -z \"\$pids\" ] && sudo kill -9 \$pids" > /dev/null 2>&1
     done
     for svr in "${shard_bac[@]}"; 
     do
         ssh -o StrictHostKeyChecking=no -i $pe $username@$svr "sudo bash -s shardsvr" < $script_dir/kill_process.sh &
-        ssh -o StrictHostKeyChecking=no -i $pe $username@$svr "sudo kill -9 \$(sudo lsof -t -i:31860)" > /dev/null 2>&1
+        ssh -o StrictHostKeyChecking=no -i $pe $username@$svr "pids=\$(sudo lsof -t -i:31860); [ ! -z \"\$pids\" ] && sudo kill -9 \$pids" > /dev/null 2>&1
     done 
     wait
 }
@@ -205,7 +192,7 @@ kill_dur_svrs() {
 }
 
 kill_cons_svr() {
-    ssh -o StrictHostKeyChecking=no -i $pe $username@$cons_svr "sudo kill -2 \$(sudo lsof -t -i:31852)"
+    ssh -o StrictHostKeyChecking=no -i $pe $username@$cons_svr "pids=\$(sudo lsof -t -i:31852); [ ! -z \"\$pids\" ] && sudo kill -2 \$pids"
     sleep 3
     ssh -o StrictHostKeyChecking=no -i $pe $username@$cons_svr "sudo bash -s conssvr" < $script_dir/kill_process.sh &
     wait 
