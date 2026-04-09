@@ -30,7 +30,6 @@ def gen_durlog_prop(dl_ips: 'list[str]', cl_ip:str, configs: dict):
         lines.append(tmpl.substitute(
             server_uri=dl_ips[0]+':31850',
             cl_server_uri=cl_ip+':31852',
-            mr_size=configs['dur_log']['mr_size'],
             th=configs['dur_log']['thread']
         ))
         f.writelines(lines)
@@ -44,7 +43,6 @@ def gen_conslog_prop(cl_ip: str, configs: dict):
         lines = []
         lines.append(tmpl.substitute(
             server_uri=cl_ip + ':31852',
-            mr_size=configs['cons_log']['mr_size'],
             fetch_size=configs['cons_log']['max_fetch_size'],
             ppl='true' if configs['cons_log']['pipeline'] else 'false',
         ))
