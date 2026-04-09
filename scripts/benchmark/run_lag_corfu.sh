@@ -23,7 +23,7 @@ consumer_delay=("0" "3")
 run_producer_consumer() {
     node="${consumer_nodes[0]}"
     ssh -i $pe $username@$node "cd ${ll_dir}/build/src/benchmark && sudo ./benchmark -c b -f $1 -t lazylog \
-        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -p dur_log.client_uri=$(get_ip $node):31851\
+        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/be.prop -p dur_log.client_uri=$(get_ip $node):31851\
         -p shard.client_uri=$(get_ip $node):31861 -l ${local_log_dir}/$2/pc_lat.log -T ${local_log_dir}/$2/pc_Tlat.log\
         -L ${local_log_dir}/$2/pc_tail.log" > ${local_log_dir}/$2/pc.log 2>&1 &
 }
@@ -31,7 +31,7 @@ run_producer_consumer() {
 run_producer_sync() {
     node="${consumer_nodes[0]}"
     ssh -i $pe $username@$node "cd ${ll_dir}/build/src/benchmark && sudo ./benchmark -c b -f $1 -t lazylog \
-        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -m s -p dur_log.client_uri=$(get_ip $node):31851\
+        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/be.prop -m s -p dur_log.client_uri=$(get_ip $node):31851\
         -p shard.client_uri=$(get_ip $node):31861 -o ${local_log_dir}/$2/pc_produce.log \
         -l ${local_log_dir}/$2/pc_consume.log" > ${local_log_dir}/$2/pc.log 2>&1 &
 }
@@ -39,7 +39,7 @@ run_producer_sync() {
 run_producer_consumer_lag() {
     node="${consumer_nodes[0]}"
     ssh -i $pe $username@$node "cd ${ll_dir}/build/src/benchmark && sudo ./benchmark -c b -f $1 -t lazylog \
-        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -p dur_log.client_uri=$(get_ip $node):31851\
+        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/be.prop -p dur_log.client_uri=$(get_ip $node):31851\
         -p shard.client_uri=$(get_ip $node):31861 -l ${local_log_dir}/$2/pc_consume.log \
         -o ${local_log_dir}/$2/pc_produce.log" > ${local_log_dir}/$2/pc.log 2>&1 &
 }

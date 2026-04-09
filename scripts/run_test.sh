@@ -30,7 +30,6 @@ do
 
         sudo ../build/src/client/basic_cli \
         -P ../cfg/dl_client.prop \
-        -P ../cfg/rdma.prop \
         -P ../cfg/be.prop \
         -p mode=w \
         -p node_id=0 \

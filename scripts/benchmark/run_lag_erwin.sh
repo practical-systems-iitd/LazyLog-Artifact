@@ -25,27 +25,27 @@ client_nodes=("node0")
 
 # arg: ip_addr of node, number of threads
 dur_cmd() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/dur_log/dursvr -P ${cfg_dir}/durlog.prop -P ${cfg_dir}/rdma.prop -p dur_log.server_uri=$1:31850"
+    echo "sudo GLOG_minloglevel=1 ./build/src/dur_log/dursvr -P ${cfg_dir}/durlog.prop -p dur_log.server_uri=$1:31850"
 }
 
 cons_cmd() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/conssvr -P ${cfg_dir}/conslog.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -P ${cfg_dir}/dl_client.prop"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/conssvr -P ${cfg_dir}/conslog.prop -P ${cfg_dir}/be.prop -P ${cfg_dir}/dl_client.prop"
 }
 
 shard_cmd_primary() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$1.prop -p leader=true"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$1.prop -p leader=true"
 }
 
 # arg: ip_addr of node
 shard_cmd_backup() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$2.prop -p shard.server_uri=$1:31860"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$2.prop -p shard.server_uri=$1:31860"
 }
 
 # used when running two shard servers on the same ip. 
 # must use 31861 port
 # arg: ip_addr of node
 shard_cmd_backup_prime() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$2.prop -p shard.server_uri=$1:31861"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$2.prop -p shard.server_uri=$1:31861"
 }
 
 get_ip() {
@@ -57,7 +57,7 @@ get_ip() {
 run_producer_consumer() {
     node="${consumer_nodes[0]}"
     ssh -i $pe $username@$node "cd ${ll_dir}/build/src/benchmark && sudo ./benchmark -c b -f $1 -t lazylog \
-        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -p dur_log.client_uri=$(get_ip $node):31851\
+        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/be.prop -p dur_log.client_uri=$(get_ip $node):31851\
         -p shard.client_uri=$(get_ip $node):31861 -l ${local_log_dir}/$2/pc_lat.log -T ${local_log_dir}/$2/pc_Tlat.log\
         -L ${local_log_dir}/$2/pc_tail.log" > ${local_log_dir}/$2/pc.log 2>&1 &
 }
@@ -65,7 +65,7 @@ run_producer_consumer() {
 run_producer_sync() {
     node="${consumer_nodes[0]}"
     ssh -i $pe $username@$node "cd ${ll_dir}/build/src/benchmark && sudo ./benchmark -c b -f $1 -t lazylog \
-        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -m s -p dur_log.client_uri=$(get_ip $node):31851\
+        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/be.prop -m s -p dur_log.client_uri=$(get_ip $node):31851\
         -p shard.client_uri=$(get_ip $node):31861 -o ${local_log_dir}/$2/pc_produce.log \
         -l ${local_log_dir}/$2/pc_consume.log" > ${local_log_dir}/$2/pc.log 2>&1 &
 }
@@ -73,7 +73,7 @@ run_producer_sync() {
 run_producer_consumer_lag() {
     node="${consumer_nodes[0]}"
     ssh -i $pe $username@$node "cd ${ll_dir}/build/src/benchmark && sudo ./benchmark -c b -f $1 -t lazylog \
-        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop \
+        -P ${cfg_dir}/dl_client.prop -P ${cfg_dir}/be.prop \
         -p shard.client_uri=$(get_ip $node):31851 -l ${local_log_dir}/$2/pc_consume.log \
         -o ${local_log_dir}/$2/pc_produce.log" > ${local_log_dir}/$2/pc.log 2>&1 &
 }

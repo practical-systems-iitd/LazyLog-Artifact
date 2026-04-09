@@ -24,12 +24,12 @@ get_ip() {
 
 # arg: shard id
 shard_cmd_primary() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P cfg/be.prop -P cfg/shard$1.prop -P cfg/rdma.prop -p leader=true -p shard.num=$num"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P cfg/be.prop -P cfg/shard$1.prop -p leader=true -p shard.num=$num"
 }
 
 # arg: shard id, ip addr
 shard_cmd_backup() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P cfg/be.prop -P cfg/shard$1.prop -P cfg/rdma.prop -p shard.server_uri=$2:31860 -p shard.num=$num"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P cfg/be.prop -P cfg/shard$1.prop -p shard.server_uri=$2:31860 -p shard.num=$num"
 }
 
 #arg: port num

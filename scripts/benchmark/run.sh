@@ -17,31 +17,31 @@ cfg_dir="${ll_dir}/scripts/benchmark/cfg"
 
 # arg: ip_addr of node, number of threads
 dur_cmd() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/dur_log/dursvr -P ${cfg_dir}/durlog.prop -P ${cfg_dir}/rdma.prop -p dur_log.server_uri=$1:31850 -p threadcount=$2"
+    echo "sudo GLOG_minloglevel=1 ./build/src/dur_log/dursvr -P ${cfg_dir}/durlog.prop -p dur_log.server_uri=$1:31850 -p threadcount=$2"
 }
 
 cons_cmd() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/conssvr -P ${cfg_dir}/conslog.prop -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/be.prop -P ${cfg_dir}/dl_client.prop"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/conssvr -P ${cfg_dir}/conslog.prop -P ${cfg_dir}/be.prop -P ${cfg_dir}/dl_client.prop"
 }
 
 shard_cmd_primary() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$1.prop -P ${cfg_dir}/rdma.prop -p leader=true"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$1.prop -p leader=true"
 }
 
 # arg: ip_addr of node
 shard_cmd_backup() {
     local port=$((2 * $2))
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$2.prop -P ${cfg_dir}/rdma.prop -p shard.server_uri=$1:3186$port"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/shardsvr -P ${cfg_dir}/be.prop -P ${cfg_dir}/shard$2.prop -p shard.server_uri=$1:3186$port"
 }
 
 # args: batch size, round
 basic_be_cmd() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/basic_be -P ${cfg_dir}/be.prop -P ${cfg_dir}/rdma.prop -p batch=$1 -p round=$2"
+    echo "sudo GLOG_minloglevel=1 ./build/src/cons_log/storage/basic_be -P ${cfg_dir}/be.prop -p batch=$1 -p round=$2"
 }
 
 # args: requests, runtime in secs, threads 
 read_cmd() {
-    echo "sudo GLOG_minloglevel=1 ./build/src/client/benchmarking/read_bench -P ${cfg_dir}/rdma.prop -P ${cfg_dir}/client.prop -P ${cfg_dir}/be.prop -p request_count=$1 -p runtime_secs=$2 -p threadcount=$3"
+    echo "sudo GLOG_minloglevel=1 ./build/src/client/benchmarking/read_bench -P ${cfg_dir}/client.prop -P ${cfg_dir}/be.prop -p request_count=$1 -p runtime_secs=$2 -p threadcount=$3"
 }
 
 dur_svrs_ip=()
