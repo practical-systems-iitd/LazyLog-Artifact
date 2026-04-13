@@ -37,6 +37,8 @@ void LazyLogClient::Initialize(const Properties &p) {
     for (auto &s : dl_servers) {
         // dur_clis_[s] = std::dynamic_pointer_cast<DurabilityLogCli>(RPCFactory::CreateCliRPCTransport(p));
         dur_clis_[s] = std::make_shared<DurabilityLogGrpcCli>();  // TODO: use dynamic type
+        // bool is_pri = (s == dl_primary_);
+        // dur_clis_[s]->InitializeConn(p, s, &is_pri);
         dur_clis_[s]->InitializeConn(p, s, nullptr);
     }
 
@@ -94,7 +96,7 @@ std::vector<uint64_t> LazyLogClient::AppendEntry(const std::string &data) {
 
     for (std::string dur_srv : dur_servs) {
         std::this_thread::sleep_for(std::chrono::milliseconds(dist(rng)));
-        uint64_t seq_num = dur_clis_[dur_srv]->AppendEntry(e) / 40;
+        uint64_t seq_num = dur_clis_[dur_srv]->AppendEntry(e);
         if (dur_clis_[dur_srv]->IsPrimary()) {
             sequence_nums.insert(sequence_nums.begin(), seq_num);
         } else {

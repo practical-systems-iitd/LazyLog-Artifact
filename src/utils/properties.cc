@@ -39,6 +39,7 @@ void ParseCommandLine(int argc, const char *argv[], Properties &props) {
         exit(0);
       }
       std::string filename(argv[argindex]);
+      std::cout << "Filename is: "<<filename;
       std::ifstream input(argv[argindex]);
       try {
         props.Load(input);
