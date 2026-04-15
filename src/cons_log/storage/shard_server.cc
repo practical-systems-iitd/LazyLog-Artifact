@@ -155,12 +155,15 @@ grpc::Status ShardServerImpl::ReplicateBatch(grpc::ServerContext* context, const
     uint64_t big_stripe_unit_size = ShardServer::stripe_unit_size_ * ShardServer::shard_num_;
     uint64_t base_idx = first_e_in_batch.log_idx / big_stripe_unit_size * big_stripe_unit_size;
 
-    ShardServer::addToEntryCache(base_idx, (const uint8_t*)buf.data());
+    {
+        std::unique_lock<std::shared_mutex> write_lock(ShardServer::cache_rw_lock_);
+        ShardServer::addToEntryCache(base_idx, (const uint8_t*)buf.data());
 
-    if (ShardServer::entries_cache_set_[base_idx].size() >= ShardServer::stripe_unit_size_) {
-        if (ShardServer::writeFromCacheToDisk(base_idx) < 0) {
-            response->set_status(-1);
-            return grpc::Status::OK;
+        if (ShardServer::entries_cache_set_[base_idx].size() >= ShardServer::stripe_unit_size_) {
+            if (ShardServer::writeFromCacheToDisk(base_idx) < 0) {
+                response->set_status(-1);
+                return grpc::Status::OK;
+            }
         }
     }
 
@@ -315,8 +318,11 @@ bool ShardServer::allRPCCompleted(std::vector<RPCToken> &tokens) {
     return true;
 }
 
-// Stubs for legacy interfaces
-void ShardServer::server_func(const Properties &p) {}
+void ShardServer::server_func(const Properties &p) {
+    while (run_) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
 void ShardServer::read_server_func(const Properties &p, int t_id) {}
 bool ShardServer::processExistingDataFiles() { return true; }
 

@@ -13,6 +13,7 @@ int main(int argc, const char *argv[]) {
 
     ShardServer shd_svr;
     shd_svr.Initialize(prop);
+    shd_svr.server_func(prop);
     shd_svr.Finalize();
 
     return 0;
