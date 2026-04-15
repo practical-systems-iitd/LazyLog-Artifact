@@ -159,6 +159,10 @@ grpc::Status ShardServerImpl::ReplicateBatch(grpc::ServerContext* context, const
         std::unique_lock<std::shared_mutex> write_lock(ShardServer::cache_rw_lock_);
         ShardServer::addToEntryCache(base_idx, (const uint8_t*)buf.data());
 
+        if (!ShardServer::entries_cache_set_[base_idx].empty()) {
+            ShardServer::replicated_index_ = ShardServer::entries_cache_set_[base_idx].back().log_idx;
+        }
+
         if (ShardServer::entries_cache_set_[base_idx].size() >= ShardServer::stripe_unit_size_) {
             if (ShardServer::writeFromCacheToDisk(base_idx) < 0) {
                 response->set_status(-1);
@@ -166,6 +170,7 @@ grpc::Status ShardServerImpl::ReplicateBatch(grpc::ServerContext* context, const
             }
         }
     }
+    ShardServer::cache_write_cv_.notify_all();
 
     response->set_status(0);
     return grpc::Status::OK;

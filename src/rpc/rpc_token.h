@@ -16,7 +16,7 @@ class RPCToken {
     std::string resp_msgbuf;
 
    protected:
-    bool completed_;
+    volatile bool completed_;
     // rpc_run_func_type run_func_;
 };
 
